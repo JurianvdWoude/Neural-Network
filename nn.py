@@ -1,21 +1,35 @@
 import numpy as np
 
-def initialize_parameters(n_x, n_h, n_y):
-  W1 = np.random.randn(n_h, n_x) * 0.01
-  b1 = np.zeros((n_h, 1))
-  W2 = np.random.randn(n_y, n_h) * 0.01
-  b2 = np.zeros((n_y, 1))
-  parameters = {
-    "W1": W1,
-    "b1": b1,
-    "W2": W2,
-    "b2": b2
-  }
+# THIS IS DEPRECATED CODE
+# MEANT FOR INITIALIZING A SIMPLE HIDDEN LAYER TO A NEURAL NETWORK
+#
+# def initialize_parameters(n_x, n_h, n_y):
+#   W1 = np.random.randn(n_h, n_x) * 0.01
+#   b1 = np.zeros((n_h, 1))
+#   W2 = np.random.randn(n_y, n_h) * 0.01
+#   b2 = np.zeros((n_y, 1))
+#   parameters = {
+#     "W1": W1,
+#     "b1": b1,
+#     "W2": W2,
+#     "b2": b2
+#   }
+# 
+#   return parameters
+# 
 
-  return parameters
+#
+# TEST OUT CODE BY USING 
+#
+# parameters = initialize_parameters_deep([5,4,3])
+# print("W1 = " + str(parameters["W1"]))
+# print("b1 = " + str(parameters["b1"]))
+# print("W2 = " + str(parameters["W2"]))
+# print("b2 = " + str(parameters["b2"]))
 
 
 # --------------------------------------------------------------
+
 
 def linear_forward(A, W, b):
   Z = np.dot(W, A) + b
@@ -27,7 +41,7 @@ def sigmoid(Z):
   return A, Z
 
 def relu(Z):
-  A = max(0, Z)
+  A = np.maximum(0, Z)
   return A, Z
 
 def initialize_parameters_deep(layer_dims):
@@ -109,11 +123,6 @@ def linear_activation_forward(A_prev, W, b, activation):
 
   return A, cache
 
-parameters = initialize_parameters_deep([5,4,3])
-print("W1 = " + str(parameters["W1"]))
-print("b1 = " + str(parameters["b1"]))
-print("W2 = " + str(parameters["W2"]))
-print("b2 = " + str(parameters["b2"]))
 
 def L_model_forward(X, parameters):
   """
@@ -447,7 +456,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     if lambd == 0 and keep_prob == 1:
       grads = L_model_backward(AL, Y, caches)
     elif lambd != 0:
-      grads = L_model_backward_with_regularization(AL, Y, caches)
+      grads = L_model_backward_with_regularization(AL, Y, caches, lambd)
     elif keep_prob < 1:
       grads = L_model_backward_with_dropout(AL, Y, caches, keep_prob)
 
@@ -456,7 +465,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     if print_cost and i % 100 == 0 or i == num_iterations - 1:
       print("Cost after iteration {}: {}".format(i, np.squeeze(cost)))
     if i % 100 == 0 or i == num_iterations:
-      cost.append(cost)
+      costs.append(cost)
   
   return parameters, costs
 
