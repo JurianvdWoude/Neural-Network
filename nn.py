@@ -322,7 +322,7 @@ def update_parameters(params, grads, learning_rate):
 
   for l in range(L):
     parameters['W' + str(l + 1)] = parameters['W' + str(l + 1)] - np.multiply(learning_rate, grads['dW' + str(l + 1)])
-    parameters['W' + str(l + 1)] = parameters['b' + str(l + 1)] - np.multiply(learning_rate, grads['db' + str(l + 1)])
+    parameters['b' + str(l + 1)] = parameters['b' + str(l + 1)] - np.multiply(learning_rate, grads['db' + str(l + 1)])
 
   return parameters
 
