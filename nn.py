@@ -32,20 +32,39 @@ import numpy as np
 
 
 def linear_forward(A, W, b):
+  """
+  Basic mathematical operation inside a neural network layer
+  Z = W × A + b
+  Arguments:
+  W -- matrix of weights
+  b -- matrix of biases
+  """
   Z = np.dot(W, A) + b
   cache = (A, W, b)
   return Z, cache
 
 def sigmoid(Z):
+  """
+  one of the ways to convert a value to something between 0 and 1.
+  This is useful to give an output that can be interpreted as a probability for the
+  binary classification problem. 
+  """
   A = 1/(1 + np.exp(-Z))
   return A, Z
 
 def relu(Z):
+  """
+  the Rectified Linear Unit. This is used to cause several neural-network layers to not behave like one big linear operation.
+  """
   A = np.maximum(0, Z)
   return A, Z
 
 def initialize_parameters_deep(layer_dims):
   """
+  Specify any number of layers to create a neural network of a specific size. 
+  For instance giving it [5, 4, 3, 2, 1] gives the following structure:
+  5 input neurons -> 4 neurons (h layer 1) -> 3 neurons (h layer 2) -> 2 neurons (h layer 3) -> 1 output neuron
+  This returns the weights and biases necessary to build this neural network. 
   Arguments:
   layer_dims -- python array (list) containing the dimensions 
                 of each layer in our network
@@ -58,6 +77,9 @@ def initialize_parameters_deep(layer_dims):
                 bl -- bias vector of shape
                       (layer_dims[l], 1)
   """
+  assert(len(layer_dims) >= 2)
+  assert(all(isinstance(dim, int) and dim > 0 for dim in layer_dims)
+
   parameters = {}
   L = len(layer_dims)
   for l in range(1, L):
@@ -71,6 +93,8 @@ def initialize_parameters_deep(layer_dims):
 
 def he_initialize_parameters_deep(layer_dims):
   """
+  Works the same as initialize_parameters_deep(), but uses He initialization.
+  This lets you choose better initial weight magnitudes, particularly when using ReLU.
   Arguments:
   layer_dims -- python array (list) containing the dimensions 
                 of each layer in our network
@@ -126,6 +150,7 @@ def linear_activation_forward(A_prev, W, b, activation):
 
 def L_model_forward(X, parameters):
   """
+  The forward propagation of the neural network.
   Arguments:
   X --      data, numpy array of shape (input size, number of examples)
   parameters -- output of initialize_parameters_deep()
@@ -162,6 +187,9 @@ def L_model_forward(X, parameters):
 
 def L_model_forward_with_dropout(X, parameters, keep_prob = 0.5):
   """
+  Same as L_model_forward() but introduced dropout to reduce overfitting by
+  temporarily turning off certain neurons so that the network doesn't become overly dependent on these neurons.
+  This makes the network theoretically better at recognizing new images.
   Arguments:
   X --      data, numpy array of shape (input size, number of examples)
   parameters -- output of initialize_parameters_deep()
@@ -203,9 +231,12 @@ def L_model_forward_with_dropout(X, parameters, keep_prob = 0.5):
 
 def compute_cost(AL, Y):
   """
+  Calculates how wrong the network was by using binary cross-entropy.
+  A prediction that is close to the correct answer produces a lower cost.
+  Cost meaning the difference between the prediction and the correct answer. 
   Arguments:
   AL -- probability vector corresponding to your label predictions, shape (1, number of examples)
-  Y -- true "label" vector (for example: containing 0 if non-cat, 1 if cat), shape (1, number of examples)
+  Y -- true "label" vector (for example: containing 1 if non-cat, 0 if cat), shape (1, number of examples)
 
   Returns:
   cost -- cross-entropy cost
@@ -220,6 +251,8 @@ def compute_cost(AL, Y):
 
 def linear_backward(dZ, cache):
   """
+  Uses differentials for doing backpropagation.
+  This allows you to change weights and biases to try and reduce the error.
   Arguments:
   dZ --     Gradient of the cost with respect to the linear output 
             (of current layer l)
@@ -243,6 +276,10 @@ def linear_backward(dZ, cache):
   return dA_prev, dW, db
 
 def relu_backward(dA, activation_cache):
+  """
+  Calculate the differential of the ReLU function for backpropagation.
+  Checks whether the neuron was active essentially.
+  """
   Z = activation_cache
   dZ = dA * ((Z > 0) * 1)
   return dZ
@@ -282,9 +319,11 @@ def linear_activation_backward(dA, cache, activation):
 
 def L_model_backward(AL, Y, caches):
   """
+  Do backpropagation accross the entire network, going backwards through every layer.
+  This essentially figures out which neurons are responsible for the prediction.
   Arguments:
   AL -- probability vector, output of the forward propagation (L_model_forward())
-  Y -- true "label" vector (containing 0 if non-cat, 1 if cat)
+  Y -- true "label" vector (containing 1 if non-cat, 0 if cat)
   caches -- list of caches containing:
               every cache of linear_activation_forward() with "relu" (it's caches[l], for l in range(L-1) i.e l = 0...L-2)
               the cache of linear_activation_forward() with "sigmoid" (it's caches[L-1])
@@ -317,6 +356,7 @@ def L_model_backward(AL, Y, caches):
 
 def update_parameters(params, grads, learning_rate):
   """
+  Allows the neural network to learn by adjusting its weights and biases.
   Arguments:
   params -- python dictionary containing your parameters 
   grads -- python dictionary containing your gradients, output of L_model_backward
@@ -336,7 +376,10 @@ def update_parameters(params, grads, learning_rate):
   return parameters
 
 def compute_cost_with_regularization(AL, Y, parameters, lambd):
-
+  """
+  Adds L2 regularization to the cost to combat overfitting.
+  This adds a penalty when weights become too large.
+  """
   L = len(parameters) // 2
 
   m = Y.shape[1]
@@ -351,9 +394,10 @@ def compute_cost_with_regularization(AL, Y, parameters, lambd):
 
 def L_model_backward_with_regularization(AL, Y, caches, lambd):
   """
+  The backpropagation version using L2 regularization.
   Arguments:
   AL -- probability vector, output of the forward propagation (L_model_forward())
-  Y -- true "label" vector (containing 0 if non-cat, 1 if cat)
+  Y -- true "label" vector (containing 1 if non-cat, 0 if cat)
   caches -- list of caches containing:
               every cache of linear_activation_forward() with "relu" (it's caches[l], for l in range(L-1) i.e l = 0...L-2)
               the cache of linear_activation_forward() with "sigmoid" (it's caches[L-1])
@@ -387,6 +431,7 @@ def L_model_backward_with_regularization(AL, Y, caches, lambd):
 
 def L_model_backward_with_dropout(AL, Y, caches, keep_prob):
   """
+  This is backpropagation when using dropouts. This stops shutdown neurons from having their weights and biases updated.
   Arguments:
   AL -- probability vector, output of the forward propagation (L_model_forward())
   Y -- true "label" vector (containing 0 if non-cat, 1 if cat)
@@ -425,6 +470,9 @@ def L_model_backward_with_dropout(AL, Y, caches, keep_prob):
 
 def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost = False, lambd = 0, keep_prob = 1):
   """
+  Manages the training process. You can enable or disable dropout or L2 regularization.
+  You can also print the training process to console.
+  You can adjust the number of times the network trains and how aggressively it learns. 
   Arguments:
   X -- data, numpy array of shape (num_px * num_px * 3, number of examples)
   Y -- true "label" vector (containing 0 if cat, 1 if non-cat), of shape (1, number of examples)
@@ -432,19 +480,23 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
   learning_rate -- learning rate of the gradient descent update rule
   num_iterations -- number of iterations of the optimization loop
   print_cost -- if True, it prints the cost every 100 steps
+  lambd -- if not 0, it enables L2 regularization based on lambda
+  keep_prob -- if not 1, it enables dropout
   
   Returns:
   parameters -- parameters learnt by the model. They can then be used to predict.
+  is_cat -- list of predictions of images whether it is a cat or not.
   """
-  costs = []
+  is_cat = []
 
   parameters = initialize_parameters_deep(layers_dims)
   for i in range(0, num_iterations):
+    assert(0 < keep_prob <= 1)
 
     if keep_prob == 1:
       AL, caches = L_model_forward(X, parameters)
-    elif keep_prob < 1:
-      AL, caches = L_model_forward_with_dropout(X, parameters)
+    else:
+      AL, caches = L_model_forward_with_dropout(X, parameters, keep_prob)
      
     if lambd == 0:
       cost = compute_cost(AL, Y)
@@ -465,8 +517,8 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     if print_cost and i % 100 == 0 or i == num_iterations - 1:
       print("Cost after iteration {}: {}".format(i, np.squeeze(cost)))
     if i % 100 == 0 or i == num_iterations:
-      costs.append(cost)
+      is_cat.append(1 - cost)
   
-  return parameters, costs
+  return parameters, is_cat
 
 
