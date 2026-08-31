@@ -33,7 +33,7 @@ import numpy as np
 
 def linear_forward(A, W, b):
   """
-  Basic mathematical operation inside a neural network layer
+  Basic mathematical operation inside a neural network layer.
   Z = W × A + b
   Arguments:
   W -- matrix of weights
@@ -54,7 +54,7 @@ def sigmoid(Z):
 
 def relu(Z):
   """
-  the Rectified Linear Unit. This is used to cause several neural-network layers to not behave like one big linear operation.
+  the Rectified Linear Unit. You want activation functions to cause several neural-network layers to not behave like one big linear operation. ReLU is specifically useful for not squashing positive values to cause a vanishing gradient problem, like sigmoid does for high values. The result essentially indicates if a neuron should be active and how strongly it shoud. 
   """
   A = np.maximum(0, Z)
   return A, Z
@@ -63,8 +63,9 @@ def initialize_parameters_deep(layer_dims):
   """
   Specify any number of layers to create a neural network of a specific size. 
   For instance giving it [5, 4, 3, 2, 1] gives the following structure:
-  5 input neurons -> 4 neurons (h layer 1) -> 3 neurons (h layer 2) -> 2 neurons (h layer 3) -> 1 output neuron
+  5 input neurons -> 4 neurons (h layer 1) -> 3 neurons (h layer 2) -> 2 neurons (h layer 3) -> 1 output neuron.
   This returns the weights and biases necessary to build this neural network. 
+
   Arguments:
   layer_dims -- python array (list) containing the dimensions 
                 of each layer in our network
@@ -78,7 +79,7 @@ def initialize_parameters_deep(layer_dims):
                       (layer_dims[l], 1)
   """
   assert(len(layer_dims) >= 2)
-  assert(all(isinstance(dim, int) and dim > 0 for dim in layer_dims)
+  assert(all(isinstance(dim, int) and dim > 0 for dim in layer_dims))
 
   parameters = {}
   L = len(layer_dims)
@@ -94,7 +95,11 @@ def initialize_parameters_deep(layer_dims):
 def he_initialize_parameters_deep(layer_dims):
   """
   Works the same as initialize_parameters_deep(), but uses He initialization.
-  This lets you choose better initial weight magnitudes, particularly when using ReLU.
+  This lets you choose better initial weight magnitudes. In particular it 
+  compensates for ReLU dropping about half the activations and the square root is for
+  the initializer usually sampling weights using a Gaussian with a chosen standard deviation.
+  numpy.random.randn returns a sample from the "standard normal" distribution. 
+
   Arguments:
   layer_dims -- python array (list) containing the dimensions 
                 of each layer in our network
@@ -107,7 +112,10 @@ def he_initialize_parameters_deep(layer_dims):
                 bl -- bias vector of shape
                       (layer_dims[l], 1)
   """
+  assert(len(layer_dims) >= 2)
+  assert(all(isinstance(dim, int) and dim > 0 for dim in layer_dims))
   parameters = {}
+
   L = len(layer_dims)
   for l in range(1, L):
     parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l - 1]) * np.sqrt(2 / layer_dims[l - 1])
@@ -120,6 +128,9 @@ def he_initialize_parameters_deep(layer_dims):
 
 def linear_activation_forward(A_prev, W, b, activation):
   """
+  This function combines the linear calculation Z = W . A + b with
+  an activation function like ReLU or Sigmoid. 
+
   Arguments:
   A_prev -- activations from previous layer (or input data): 
             (size of previous layer, number of examples)
@@ -151,6 +162,7 @@ def linear_activation_forward(A_prev, W, b, activation):
 def L_model_forward(X, parameters):
   """
   The forward propagation of the neural network.
+
   Arguments:
   X --      data, numpy array of shape (input size, number of examples)
   parameters -- output of initialize_parameters_deep()
@@ -188,8 +200,10 @@ def L_model_forward(X, parameters):
 def L_model_forward_with_dropout(X, parameters, keep_prob = 0.5):
   """
   Same as L_model_forward() but introduced dropout to reduce overfitting by
-  temporarily turning off certain neurons so that the network doesn't become overly dependent on these neurons.
-  This makes the network theoretically better at recognizing new images.
+  temporarily turning off certain neurons so that the network doesn't become overly dependent 
+  on these neurons. This makes the network theoretically better at recognizing new images.
+  Specifically uses inverted dropout to keep the average activation of the network the same. 
+
   Arguments:
   X --      data, numpy array of shape (input size, number of examples)
   parameters -- output of initialize_parameters_deep()
@@ -233,7 +247,8 @@ def compute_cost(AL, Y):
   """
   Calculates how wrong the network was by using binary cross-entropy.
   A prediction that is close to the correct answer produces a lower cost.
-  Cost meaning the difference between the prediction and the correct answer. 
+  Cost meaning the difference between the prediction and the correct answer.
+  This uses the cross-entropy function to meas
   Arguments:
   AL -- probability vector corresponding to your label predictions, shape (1, number of examples)
   Y -- true "label" vector (for example: containing 1 if non-cat, 0 if cat), shape (1, number of examples)
@@ -454,14 +469,14 @@ def L_model_backward_with_dropout(AL, Y, caches, keep_prob):
 
   dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
   dA_prev_temp, dW_temp, db_temp = linear_activation_backward(dAL, caches[L - 1], 'sigmoid')
-  D = caches[L][4]
+  D = caches[L][2]
   grads['dA' + str(L - 1)] = (dA_prev_temp * D) / keep_prob
   grads['dW' + str(L)] = dW_temp
   grads['db' + str(L)] = db_temp
 
   for l in reversed(range(L - 1)):
     dA_prev_temp, dW_temp, db_temp = linear_activation_backward(grads['dA' + str(l + 1)], caches[l], 'relu')
-    D = caches[l][4]
+    D = caches[l][2]
     grads['dA' + str(l)] = (dA_prev_temp * D) / keep_prob
     grads['dW' + str(l + 1)] = dW_temp
     grads['db' + str(l + 1)] = db_temp
@@ -489,7 +504,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
   """
   is_cat = []
 
-  parameters = initialize_parameters_deep(layers_dims)
+  parameters = he_initialize_parameters_deep(layers_dims)
   for i in range(0, num_iterations):
     assert(0 < keep_prob <= 1)
 
