@@ -47,7 +47,7 @@ def load_images(directory):
       except Exception as e:
         print(f"Could not load {image_path}: {e}")
 
-  X = np.array(images.T)
+  X = np.array(images).T
   Y = np.array(labels).reshape(1, -1)
 
   return X, Y
