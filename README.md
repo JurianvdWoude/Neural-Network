@@ -1,157 +1,147 @@
+
 # Neural Network from Scratch
 
-A fully-connected feedforward neural network implemented from scratch using **NumPy** — no deep learning frameworks required. Supports arbitrary depth, two activation functions, dropout regularization, and L2 regularization.
+A fully-connected feedforward neural network implemented from scratch using **Python and NumPy**, without using a machine-learning or deep-learning framework.
 
----
+I originally built this project as a way to understand how neural networks work under the hood, including forward propagation, backpropagation, gradient descent, activation functions, and regularization.
+
+The network is currently being used for a small **cat vs. non-cat image classification experiment** using 64×64 RGB images.
 
 ## Features
 
-- **L-layer deep neural network** — configure any number of hidden layers via a single list
-- **Activation functions** — ReLU (hidden layers) and Sigmoid (output layer)
-- **Two weight initialization strategies:**
-  - Standard random initialization (scaled by 0.01)
-  - He initialization (recommended for ReLU networks)
-- **Forward propagation** with and without dropout
-- **Backward propagation** with:
-  - Standard backprop
-  - L2 regularization
-  - Dropout regularization
-- **Cross-entropy cost** function
-- **Gradient descent** parameter updates
-- **Dropout** to prevent exploding/vanishing gradients and overfitting
+* L-layer fully-connected neural network
+* ReLU activation for hidden layers
+* Sigmoid activation for binary classification
+* He weight initialization
+* Forward and backward propagation
+* Gradient descent
+* Binary cross-entropy cost
+* L2 regularization
+* Dropout regularization
+* Separate training, prediction, and evaluation scripts
+* Custom image dataset generated with my [catscraper](https://github.com/JurianvdWoude/catscraper) project
 
----
+## Project Structure
+
+```text
+Neural-Network/
+├── nn.py             # Neural network implementation
+├── data_loader.py    # Loads and prepares image data
+├── train.py          # Trains and saves the model
+├── predict.py        # Makes predictions on images
+├── evaluate.py       # Evaluates the model on test data
+├── data/             # Local dataset (not committed to Git)
+└── model/            # Saved model parameters
+```
+
+The dataset is intentionally not included in this repository. It is generated separately using [catscraper](https://github.com/JurianvdWoude/catscraper).
+
+## The Neural Network
+
+The network follows the standard training process:
+
+```text
+Input image
+     ↓
+Linear layer + ReLU
+     ↓
+Linear layer + ReLU
+     ↓
+       ...
+     ↓
+Linear layer + Sigmoid
+     ↓
+Cat / Non-cat prediction
+```
+
+The hidden layers use **ReLU**, while the final layer uses **Sigmoid** to produce an output between 0 and 1 for binary classification.
+
+The current label convention is:
+
+```text
+0 = Cat
+1 = Non-cat
+```
+
+## Training
+
+The network can be trained using:
+
+```bash
+python train.py
+```
+
+Training data consists of 64×64 RGB images split into `cat` and `nocat` directories.
+
+The dataset is randomly split into training and test sets by the accompanying `catscraper` project.
+
+## Evaluation
+
+After training, the model can be evaluated on the test set with:
+
+```bash
+python evaluate.py
+```
+
+The evaluation reports the model's accuracy and a simple confusion matrix.
+
+For example:
+
+```text
+Test images: 634
+Accuracy: 58.83%
+
+Confusion matrix:
+-----------------
+Actual cats:
+  predicted cat:     263
+  predicted non-cat: 122
+
+Actual non-cats:
+  predicted cat:     139
+  predicted non-cat: 110
+```
+
+The current accuracy is intentionally included here as a snapshot of the project's current state rather than presenting the project as a highly accurate image classifier. The main purpose of the project is to demonstrate an understanding of how a neural network can be implemented and trained from the ground up.
+
+## Why I Built This
+
+Rather than using an existing machine-learning framework, I wanted to understand what actually happens inside a neural network.
+
+The project therefore implements the core operations manually, including:
+
+* matrix-based forward propagation
+* activation functions
+* cost calculation
+* backpropagation and the chain rule
+* gradient descent
+* weight initialization
+* dropout
+* L2 regularization
+
+This project is primarily a learning and hobby project rather than an attempt to build a production-quality image classifier.
 
 ## Requirements
 
-- Python 3.x
-- [NumPy](https://numpy.org/)
+* Python 3.x
+* NumPy
+* Pillow
 
-Install NumPy with:
+Install the dependencies with:
 
 ```bash
-pip install numpy
+pip install numpy pillow
 ```
 
----
+## Related Project
 
-## File Structure
+The image dataset used for the experiment is generated with:
 
-```
-Neural-Network/
-├── nn.py        # Full neural network implementation
-└── README.md
-```
+**[catscraper](https://github.com/JurianvdWoude/catscraper)**
 
----
-
-## Usage
-
-### 1. Initialize parameters
-
-```python
-from nn import initialize_parameters_deep, he_initialize_parameters_deep
-
-# Standard initialization
-parameters = initialize_parameters_deep([12288, 20, 7, 5, 1])
-
-# He initialization (better for deep ReLU networks)
-parameters = he_initialize_parameters_deep([12288, 20, 7, 5, 1])
-```
-
-`layer_dims` is a list where each element defines the number of units in that layer (input → hidden → ... → output).
-
-### 2. Train the model
-
-```python
-from nn import L_layer_model
-
-parameters, costs = L_layer_model(
-    X,                    # Input data, shape (n_x, m)
-    Y,                    # Labels, shape (1, m)
-    layers_dims,          # e.g. [n_x, 20, 7, 5, 1]
-    learning_rate=0.0075,
-    num_iterations=3000,
-    print_cost=True,
-    lambd=0,              # L2 regularization strength (0 = disabled)
-    keep_prob=1           # Dropout keep probability (1 = disabled)
-)
-```
-
-**Regularization options (mutually exclusive):**
-
-| Option | Effect |
-|---|---|
-| `lambd=0, keep_prob=1` | No regularization (standard backprop) |
-| `lambd > 0` | L2 regularization |
-| `keep_prob < 1` | Dropout regularization |
-
-### 3. Forward pass only
-
-```python
-from nn import L_model_forward, L_model_forward_with_dropout
-
-AL, caches = L_model_forward(X, parameters)
-
-# With dropout (use during training only)
-AL, caches = L_model_forward_with_dropout(X, parameters, keep_prob=0.8)
-```
-
----
-
-## API Reference
-
-### Initialization
-
-| Function | Description |
-|---|---|
-| `initialize_parameters(n_x, n_h, n_y)` | Initialize a 2-layer network |
-| `initialize_parameters_deep(layer_dims)` | Initialize an L-layer network |
-| `he_initialize_parameters_deep(layer_dims)` | He initialization for deep ReLU networks |
-
-### Forward Propagation
-
-| Function | Description |
-|---|---|
-| `L_model_forward(X, parameters)` | Standard forward pass |
-| `L_model_forward_with_dropout(X, parameters, keep_prob)` | Forward pass with dropout |
-
-### Cost
-
-| Function | Description |
-|---|---|
-| `compute_cost(AL, Y)` | Cross-entropy cost |
-| `compute_cost_with_regularization(AL, Y, parameters, lambd)` | Cross-entropy + L2 cost |
-
-### Backward Propagation
-
-| Function | Description |
-|---|---|
-| `L_model_backward(AL, Y, caches)` | Standard backprop |
-| `L_model_backward_with_regularization(AL, Y, caches, lambd)` | Backprop with L2 regularization |
-| `L_model_backward_with_dropout(AL, Y, caches, keep_prob)` | Backprop with dropout |
-
-### Parameter Update
-
-| Function | Description |
-|---|---|
-| `update_parameters(params, grads, learning_rate)` | Gradient descent update step |
-
----
-
-## How It Works
-
-The network uses a standard **forward → cost → backward → update** training loop:
-
-1. **Forward propagation** — compute activations layer by layer (ReLU for hidden layers, Sigmoid for the output)
-2. **Cost computation** — binary cross-entropy loss, optionally with L2 penalty
-3. **Backward propagation** — compute gradients via chain rule, layer by layer
-4. **Parameter update** — apply gradient descent using the computed gradients
-
-Dropout is applied during the forward pass by randomly zeroing out neurons, then scaled by `1/keep_prob` to maintain expected activation values. During backprop, the same dropout mask is reapplied.
-
----
+It downloads images and randomly splits them into training and test datasets. The generated images are kept locally and are not committed to this repository.
 
 ## License
 
 This project is open source. See the repository for details.
+
